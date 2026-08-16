@@ -21,4 +21,6 @@ ENV PORT=8080
 ENV HF_HUB_OFFLINE=1
 EXPOSE 8080
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8080", "--timeout", "300", "app:app"]
+# Shell form (not exec/JSON-array form) so $PORT actually expands -
+# Railway injects its own PORT value and routes the healthcheck there.
+CMD gunicorn -w 1 -b 0.0.0.0:$PORT --timeout 300 app:app
