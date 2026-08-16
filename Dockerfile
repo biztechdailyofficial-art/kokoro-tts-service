@@ -11,7 +11,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
+# Bake Kokoro's model weights into the image at build time. Without this,
+# the container downloads them from Hugging Face on first boot, which
+# (combined with gunicorn's worker timeout) can take longer than
+# Railway's healthcheck window and fail the deploy.
+RUN python -c "from kokoro import KPipeline; KPipeline(lang_code='a'); KPipeline(lang_code='b')"
+
 ENV PORT=8080
+ENV HF_HUB_OFFLINE=1
 EXPOSE 8080
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8080", "--timeout", "60", "app:app"]
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8080", "--timeout", "300", "app:app"]
