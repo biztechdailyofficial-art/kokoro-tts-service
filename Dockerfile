@@ -15,7 +15,7 @@ COPY app.py .
 # the container downloads them from Hugging Face on first boot, which
 # (combined with gunicorn's worker timeout) can take longer than
 # Railway's healthcheck window and fail the deploy.
-RUN python -c "from kokoro import KPipeline; KPipeline(lang_code='a'); KPipeline(lang_code='b')"
+RUN python -c "from kokoro import KModel, KPipeline; m = KModel(repo_id='hexgrad/Kokoro-82M'); KPipeline(lang_code='a', model=m); KPipeline(lang_code='b', model=m)"
 
 ENV PORT=8080
 ENV HF_HUB_OFFLINE=1

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import soundfile as sf
 from flask import Flask, jsonify, request, send_file
-from kokoro import KPipeline
+from kokoro import KModel, KPipeline
 
 app = Flask(__name__)
 
@@ -18,9 +18,13 @@ VOICES = {
 }
 
 print('Loading Kokoro pipelines...', flush=True)
+# Share one KModel across both language pipelines instead of letting each
+# KPipeline construct its own copy - two full copies of the model was
+# blowing past Railway's memory limit and getting SIGKILLed on every boot.
+shared_model = KModel(repo_id='hexgrad/Kokoro-82M').eval()
 pipelines = {
-    'a': KPipeline(lang_code='a'),
-    'b': KPipeline(lang_code='b'),
+    'a': KPipeline(lang_code='a', model=shared_model),
+    'b': KPipeline(lang_code='b', model=shared_model),
 }
 print('Kokoro ready', flush=True)
 
